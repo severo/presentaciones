@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]> <html class="no-js ie6" lang="en"> <![endif]-->
+<!--[if IE 7]>    <html class="no-js ie7" lang="en"> <![endif]-->
+<!--[if IE 8]>    <html class="no-js ie8" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!-->  <html class="no-js" lang="en"> <!--<![endif]-->
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	
+	<title>CMS para la seguridad (ejemplo de SPIP)</title>
+	
+	<meta name="description" content="Uso de CMS para mejor seguridad - ejemplo con SPIP">
+	<meta name="author" content="Sylvain LESAGE">
+	<meta name="viewport" content="width=1024, user-scalable=no">
+	
+	<!-- Core and extension CSS files -->
+	<link rel="stylesheet" href="../core/deck.core.css">
+	<link rel="stylesheet" href="../extensions/goto/deck.goto.css">
+	<link rel="stylesheet" href="../extensions/menu/deck.menu.css">
+	<link rel="stylesheet" href="../extensions/navigation/deck.navigation.css">
+	<link rel="stylesheet" href="../extensions/status/deck.status.css">
+	<link rel="stylesheet" href="../extensions/hash/deck.hash.css">
+	
+	<!-- Theme CSS files (menu swaps these out) -->
+	<link rel="stylesheet" id="style-theme-link" href="../themes/style/swiss.css">
+	<link rel="stylesheet" id="transition-theme-link" href="../themes/transition/horizontal-slide.css">
+	
+	<!-- Custom CSS just for this page -->
+	<link rel="stylesheet" href="introduction.css">
+	
+	<script src="../modernizr.custom.js"></script>
+</head>
+
+<body class="deck-container">
+
+<section class="slide" id="titulo">
+	<h2>Sitios web y seguridad</h2>
+	<h3>Sylvain LESAGE</h3>
+	<h1>¿ Para que reinventar la rueda ?</h1>
+</section>
+
+<section class="slide" id="sitio-estatico">
+	<h2>Sitios estaticos</h2>
+	<ul>
+		<li>Sitio de maximá seguridad: <strong>sin script, sin base de datos!</strong></li>
+		<li>Páginas estaticas
+			<ul>
+				<li>obligatorio: HTML
+<pre><h4>hola_mundo.html</h4><code>&lt;html&gt;
+  &lt;head&gt;
+    &lt;title&gt;Tutorial: Hola Mundo&lt;/title&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;/path/to/css/estilo.css&quot;&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;h1 class=&quot;h1&quot;&gt;Hola Mundo&lt;/h1&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+				</li>
+				<li>eventualmente: CSS
+<pre><h4>estilo.css</h4><code>h1 {font-size: 2em;color: #444;}</code></pre>
+				</li>
+			</ul>
+		</li>
+		<li>
+			Ver el ejemplo 
+			<a href="./ejemplos/hola_mundo.html">hola_mundo.html</a>
+		</li>
+		<li>
+			Otro ejemplo:
+			<a href="http://wikileaks.org/cable/2009/05/09LAPAZ750.html">Wikileaks</a>
+		</li>
+	</ul>
+</section>
+
+<section class="slide" id="pero">
+	<h2>Pero...</h2>
+	<h3>si bien un sitio estatico es</h3>
+	<ul>
+		<li><strong>sin bugs</strong></li>
+		<li><strong>seguro contra ataques</strong></li>
+		<li><strong>simple de instalar</strong></li>
+	</ul>
+	<h3>también es</h3>
+	<ul>
+		<li><strong>más pesado</strong> - ejemplo de Wikileaks:
+			<ul>
+				<li>40GB de páginas HTML para el sitio estatico</li>
+				<li>2GB para Base de datos SQL equivalente</li>
+			</ul>
+		</li>
+		<li><strong>dificil de mantener</strong>
+			<ul>
+				<li><em>modificación del contenido</em>: no hay plantillas de llenado</li>
+				<li><em>trabajo colaborativo</em>: no se sabe quien modificó, quien aprobó</li>
+				<li><em>cambio de estructura en la página</em>: hay que modificar en todos los archivos HTML</li>
+				<li><em>contenido y forma mezclados</em></li>
+			</ul>
+		</li>
+	</ul>
+</section>
+
+<section class="slide" id="PHP">
+	<h2>PHP</h2>
+	<p>Ahora casi todos los sitios están creados de forma <strong>dinamica</strong> con un lenguaje tipo <strong>PHP</strong>, ASP, Python... relacionado a una base de datos (BDD) <strong>SQL</strong>:</p>
+	<ul>
+		<li><strong>contenido</strong>: datos en la BDD - artículos, noticias, ...</li>
+		<li><strong>forma</strong>: páginas calculadas usando PHP - jala los datos de la base, y crea el código HTML correspondiente</li>
+	</ul>
+	<p>Por ejemplo, remplacemos</p>
+<pre><code>&lt;h1 class=&quot;h1&quot;&gt;Hola Mundo&lt;/h1&gt;</code></pre>
+	<p>por</p>
+<pre><code>&lt;?php 
+    $mysql_link = mysql_connect('localhost', 'user', 'passwd');
+    mysql_select_db('db', $mysql_link);
+    $query = "SELECT titulo FROM articulos ORDER BY titulo LIMIT 1";
+    $result = mysql_query($query, $mysql_link);
+    while($row = mysql_fetch_row($result)) {
+        sprintf('&lt;h1 class=&quot;h1&quot;&gt;%s&lt;/h1&gt;', $row[0]);
+    }
+?&gt;</code></pre>
+</section>
+
+<section class="slide" id="ataques">
+	<h2>Vulnerabilidades de PHP</h2>
+	<p>Si bien el uso de PHP permite separar contenido y forma, para crear páginas de manera dimanica, es vulnerable a toda una clase de ataques</p>
+	<ul>
+		<li><strong>SQL injection</strong>: para ver y modificar la base de datos</li>
+		<li><strong>Cross Site Scripting (XSS)</strong>: para inyectar scripts (javascript) en foros, por ejemplo</li>
+		<li><strong>Falla include</strong>: para incluir otra página externa - deface</li>
+		<li><strong>Directory transversal</strong>: para conocer la arborescencia de los archivos en el servidor</li>
+	</ul>
+	<p>Existe toda una lista de precauciones para evitar estos ataques. Dos soluciones</p>
+	<ul>
+		<li><strong>tonto pero con valor</strong>:</li>
+			<ul>
+				<li>estudiar todas las fallas</li>
+				<li>mantenerse al día</li>
+				<li>modificar el sitio para cada nueva vulnerabilidad potencial</li>
+			</ul>
+		</li>
+		<li><strong>astuto y flojo</strong>:</li>
+			<ul>
+				<li>utilizar herramientas que aseguran la seguridad</li>
+				<li>actualizarlas regularmente</li>
+				<li>concentrarse sobre lo importante: contenido, grafismo, etc.</li>
+			</ul>
+		</li>
+	</ul>
+</section>
+
+<section class="slide" id="CMS">
+	<h2>Los frameworks y CMS</h2>
+	<ul>
+		<li><strong>Framework</strong>: Libreria de funciones ya codificadas y seguras que sirven de <strong>base</strong> para un sitio o un sistema.</li>
+		<li><strong>CMS (Content Management System)</strong>: Solución <strong>completa</strong> para la publicación de informaciones - es como un blog avanzado.</li>
+	</ul>
+	<p>Para la mayoria de los sitios, la solución más simple, rapida y eficiente es el <strong>CMS</strong>.</p>
+	<p>Nota: los CMS más populares son Open Source, lo que asegura: gratuidad, respeto de la nueva ley 164, comunidad disponible para el soporte, <strong>seguridad</strong> (se puede revisar todo el código)</p>
+</section>
+
+<section class="slide" id="redactores">
+	<h2>CMS para los redactores</h2>
+	<ul>
+		<li>Facilidad de contribuir (escribir un artículo, modificar un dato)</li>
+		<li>Herramientas de trabajo en equipo, sobre un mismo texto</li>
+	</ul>
+	<h3>Seguridad</h3>
+	<p>Sus derechos son restringidos a lo necesario. Son responsables del contenido (se puede trazar).</p>
+</section>
+
+<section class="slide" id="adminstradores">
+	<h2>CMS para los administradores</h2>
+	<ul>
+		<li>Herramientas de estadisticas de visitas, seguimiento de versiones, trazabilidad por logs</li>
+		<li>Instalación de funcionalidades extras por plugins</li>
+		<li>Modificación del grafismo cambiando de tema</li>
+	</ul>
+	<h3>Seguridad</h3>
+	<p>Configuración precisa de los derechos de usuarios, con niveles de derechos y restricciones por secciones del sitio</p>
+	<p>La seguridad del sitio se preserva vía la actulización regular del CMS. OjO: en caso de cambio mayor de versión (2.1 -> 3.0), puede haber incompatibilidades que necesitan modificar el código del sitio (intervención del desarrollador).</p>
+</section>
+
+<section class="slide" id="desarrolladores">
+	<h2>CMS para los desarrolladores</h2>
+	<ul>
+		<li>Todas las principales funcionalidades de un sitio dinamico ya están codificadas con calidad (verificación de errores, logs, seguridad)
+			<ul>
+				<li>interfaz con la BDD, con soporte de varios tipos de servidores (MySQL, PostGreSQL, SQLite, etc.)</li>
+				<li>manejo de usuarios</li>
+				<li>manejo del contenido editorial</li>
+				<li>foros</li>
+				<li>motor de búsqueda</li>
+				<li>plantillas de administración</li>
+			</ul>
+		</li>
+		<li>La adaptación del código para un sitio es <strong>facil y segura</strong> (generalmente: sin código PHP)</li>
+		<li>El desarrollo especifico se hace por módulos: temas para el grafismo, plugins para funcionalidades extras</li>
+		<li>No hay ningún contenido en el código, el desarrollador no se precupa del contenido</li>
+	</ul>
+	<h3>Seguridad</h3>
+	<p>En general, no hay que escribir ningún código PHP. Si se utiliza, siempre es con la API del CMS, que previene las fallas de seguridad.</p>
+	<p>Cuando se actualiza el CMS, la API queda la misma, solo cambia el código abajo.</p>
+</section>
+
+<section class="slide" id="fallas">
+	<h2>Corrección de fallas</h2>
+	<h3>Sitio hecho "a mano"</h3>
+	<p>En el caso de un sitio desarrollado y mantenido por unas personas, es dificíl asegurar la seguridad en el transcurso del tiempo.</p>
+	<h3>Sitio hecho con un CMS</h3>
+	<ul>
+		<li><strong>Miles de usuarios</strong> con el mismo código: más posibilidades de encontrar las fallas rapidamente (en varios OS, varios navegadores, etc.) Cuidado con el mito de la <a href="http://es.wikipedia.org/wiki/Seguridad_por_oscuridad#Argumentos_contra_la_seguridad_por_oscuridad">seguridad por oscuridad</a>: se mostró que públicar el código permite aumentar la seguridad!</li>
+		<li><strong>Muchos desarrolladores</strong>: las fallas están corregidas con prontitud y cuidado</li>
+		<li>En una comunidad grande, hay especialistas de cada aspeto de la programación (grafismo, ergonomía, bases de datos, seguridad, etc.) lo que aumenta la calidad de cada parte.</li>
+		<li>Mecanismos de detección de las fallas: peer reviewing, concursos de "ataques", bug tracking, fases de test</li>
+	</ul>
+	<p>La única contraparte es la necesidad de ser atento a las actualizaciones del CMS.</p>
+
+</section>
+
+<section class="slide" id="lista_CMS">
+	<h2>Lista de CMS</h2>
+	<p>Existen decenas de CMS, con caracteristicas similares. Para elegir uno, se debe tomar en consideración</p>
+	<ul>
+		<li>el tamaño de la comunidad, sus valores, sus canales de discusión</li>
+		<li>el lenguaje utilizado</li>
+		<li>la lista de funcionalidades</li>
+		<li>la actividad de la comunidad y los plugins y temas disponibles</li>
+	</ul>
+	<p>Los varios CMS que siguen tienen las funcionalidades minimas para desarrollar cualquier tipo de sitio y son Open Source. Poco importa cual se utiliza, lo más importante es manejar bien lo que se elige.</p>
+	<ul>
+		<li><a href="http://wordpress.org/">Wordpress</a>: lo más popular, empezo como CMS para blogs</li>
+		<li><a href="http://www.joomla.org/">Joomla!</a>: simple y muy popular</li>
+		<li><a href="http://drupal.org/">Drupal</a>: un poco más complicado para el desarrollador, pero muy poderoso y popular</li>
+		<li><a href="http://plone.org/">Plone</a>: otro CMS</li>
+		<li><a href="https://www.djangoproject.com/">Django</a>: programado en Python</li>
+		<li><a href="http://www.spip.net/rubrique23.html">SPIP</a>: facil de programar, ligero, seguro - CMS militante</li>
+	</ul>
+</section>
+
+<section class="slide" id="spip-titulo">
+	<h2>Un ejemplo de CMS</h2>
+	<h1>SPIP</h1>
+</section>
+
+<section class="slide" id="spip">
+	<h2>SPIP</h2>
+	<p>SPIP es un CMS en PHP/SQL, originalmente pensado para la prensa en línea, con las caracteristicas siguientes</p>
+	<ul>
+		<li><strong>Bases de datos</strong>: MySQL, PostGreSQL, SQLite</li>
+		<li><strong>Lenguaje</strong>: PHP</li>
+		<li><strong>Sistema de caché muy poderoso</strong>: sitios muy rapidos, las páginas están calculadas (con PHP) soló cuando son nuevas, con contenido modificado o después de un cierto tiempo. El resto del tiempo, el resultado ya calculado esta enviado</li>
+		<li><strong>Uso masivo de ajax</strong>: cada parte de la página se carga de manera independiente, con su caché propio</li>
+		<li><strong>"Esqueletos" para crear las páginas</strong>: una API en HTML para acceder a la base de datos de manera simple</li>
+	</ul>
+</section>
+
+<section class="slide" id="spip-sitios">
+	<h2>Unos ejemplos de sitios con SPIP</h2>
+	<ul>
+		<li>Institucional
+			<ul>
+				<li><a href="http://www.embajadaboliviacolombia.org">Embajada de Bolivia en Colombia</a></li>
+				<li><a href="http://www.vicepresidencia.gob.bo/">Vicepresidencia de Bolivia</a></li>
+				<li><a href="http://sports.gouv.fr/index/">Ministerio de deportes de Francia</a></li>
+				<li><a href="http://ambafrance-bo.org/spip.php?rubrique2">Embajada de Francia en Bolivia</a></li>
+			</ul>
+		</li>
+		<li>Sistemas avanzados abiertos
+			<ul>
+				<li><a href="http://seenthis.net/">Sistema de microblogging</a></li>
+				<li><a href="http://beta.geodiversite.net/spip.php?page=carte">Catalogo georeferenciado</a></li>
+				<li><a href="http://www.mediaspip.net/">Repositorio de medias (tipo Youtube)</a></li>
+				<li><a href="http://grml.eu/">Sitio de demostración de SPIP</a></li>
+			</ul>
+		</li>
+		<li>Varios estilos gráficos
+			<ul>
+				<li><a href="http://plaztika.com/?lang=es">Galeria de artes en Mexico</a></li>
+				<li><a href="http://www.cuisine-libre.fr/">Sitio de recetas</a></li>
+				<li><a href="http://www.paris-united.com/">Club de box</a></li>
+				<li><a href="http://www.groovalizacion.com/?lang=es">Radio en Internet</a></li>
+				<li><a href="http://www.lotusrenaultgp.com/?lang=en">Formula Uno</a></li>
+				<li><a href="http://www.glisse29.com/">Portafolio</a></li>
+				<li><a href="http://www.amnestyinternational.be/doc/">Amnesty Internacional</a></li>
+				<li><a href="http://www.regards.fr/">Periodico en línea</a></li>
+				<li><a href="http://www.monde-diplomatique.fr/">Le Monde Diplo</a></li>
+			</ul>
+		</li>
+	</ul>
+</section>
+
+<section class="slide" id="spip-demowww-rc">
+	<h2>Visita del espacio privado de SPIP</h2>
+	<p>Veremos como se utiliza el espacio privado de SPIP, en la <a href="http://www-rc.vicepresidencia.gob.bo/">página de demostración</a>. Logins/Passwords:</p>
+	<ul>
+		<li>spip_redactor - mG9Y1DUlqYFOx6Wr</li>
+		<li>spip_administrador - k8r0VvzrFmXo3Bwk</li>
+		<li>spip_webmaster - M9pCoII6fWbW5IhB</li>
+	</ul>
+</section>
+
+<section class="slide" id="spip-instalacion">
+	<h2>Instalamos un SPIP</h2>
+	<p>Instalamos un sitio SPIP sobre un servidor LAMP (Apache, MySQL, PHP) en Debian</p>
+	<ul>
+		<li>Instalamos:
+<pre><code>sudo aptitude install apache2 mysql-server php5 php5-mysql phpmyadmin
+sudo ln -s /etc/phpmyadmin/apache.conf /etc/apache2/conf.d/phpmyadmin.conf
+sudo /etc/init.d/apache2 reload
+</code></pre>
+		En la configuración Apache: habilitar el módulo rewrite, y poner <code>AllowOverwrite All</code> en la configuración de /var/www para tomar en cuenta los .htaccess (o una configuración más precisa para una mejor seguridad)
+		</li>
+		<li>Creamos una base de datos para el sitio con <a href="http://localhost/phpmyadmin/">phpmyadmin</a>:
+			<ul>
+				<li>base: ejemplo_spip</li>
+				<li>user: ejemplo_spip</li>
+				<li>password: utilizar la creacion de password por phpmyadmin</li>
+			</ul>
+		</li>
+		<li>Preparar la carpeta para el sitio y descargamos el <a href="http://www.spip.net/es_article3108.html#spip_loader">instalador automático</a> spip_loader.php (documentación sobre como <a href="http://www.google.com/search?q=instalar+spip&ie=utf-8&oe=utf-8&lr=lang_es">instalar SPIP</a>)
+<pre><code>sudo mkdir /var/www/ejemplo_spip/
+cd /var/www/ejemplo_spip/
+sudo wget http://www.spip.net/spip-dev/INSTALL/spip_loader.php
+sudo chown -R www-data:www-data /var/www/ejemplo_spip
+</code></pre>
+		</li>
+		<li>Lanzamos la instalación: <a href="http://localhost/ejemplo_spip/spip_loader">http://localhost/ejemplo_spip/spip_loader</a> - SPIP se descarga (4 MB) y se instala</li>
+	</ul>
+</section>
+
+<section class="slide" id="spip-actualizacion">
+	<h2>Actualización de un sitio SPIP</h2>
+	<p>La seguridad de todo sistema depende de la frecuencia de actualización de sus componentes. La versión 2.1 de SPIP, por ejemplo, fue actualizada 11 veces desde su lanzamiento hace un año, para tomar en cuenta los patches de seguridad.</p>
+	<p>En el espacio privado, las nuevas versiones están listadas en el pie de página (hay una verificación cada tres días - para verificar: página <a href="http://localhost/ejemplo_spip_desactualizado/ecrire/?exec=demande_mise_a_jour">ecrire/?exec=demande_mise_a_jour</a>).</p>
+	<p>Para actualizar (<a href="http://www.spip.net/es_article2186.html">doc</a>):</p>
+	<ul>
+		<li>instalar el <a href="http://www.spip.net/es_article3108.html#spip_loader">instalador automático</a> spip_loader.php en la carpeta del sitio
+<pre><code>cd /var/www/ejemplo_spip_desactualizado/
+sudo wget http://www.spip.net/spip-dev/INSTALL/spip_loader.php 
+</code></pre>
+		</li>
+		<li>lanzar la actualización: <a href="http://localhost/ejemplo_spip_desactualizado/spip_loader">http://localhost/ejemplo_spip_desactualizado/spip_loader</a></li>
+		<li>verificar la compatibilidad de los eventuales plugins y del código especifico al sitio (normalmente, queda compatible para una misma rama, ex 2.1.x)</li>
+	</ul>
+</section>
+
+<section class="slide" id="spip-doc">
+	<h2>Donde encontrar ayuda para SPIP</h2>
+	<p></p>
+	<ul>
+		<li><a href="http://www.spip.net/rubrique23.html">Documentación oficial</a></li>
+		<li><a href="http://plugins.spip.net/">Plugins</a></li>
+		<li><a href="http://www.spip-contrib.net/?lang=es">Todas las contribuciones de la comunidad</a></li>
+		<li><a href="http://forum.spip.org/es_rubrique194.html">Foros de ayuda</a></li>
+		<li><a href="http://grml.eu/">Sitio de prueba de SPIP</a> - Ir a <a href="http://elsubdominioquequiero.grml.eu">http://elsubdominioquequiero.grml.eu</a> para crear un sitio para tus pruebas (codigo: "ecureuil")</li>
+		<li><a href="http://programmer.spip.org/?lang=es">Referencia para la programación</a></li>
+		<li><a href="http://webchat.freenode.net/?channels=%23spip-es">Salón de chat IRC</a> - #spip-es sobre el servidor freenode.net</li>
+		<li>Mi correo: severo _at_ rednegra _punto_ net</li>
+	</ul>
+</section>
+
+<section class="slide" id="">
+	<h2></h2>
+	<p></p>
+	<ul>
+		<li><strong></strong>: </li>
+		<li></li>
+	</ul>
+</section>
+
+<a href="#" class="deck-prev-link" title="Previous">&#8592;</a>
+<a href="#" class="deck-next-link" title="Next">&#8594;</a>
+
+<p class="deck-status">
+	<span class="deck-status-current"></span>
+	/
+	<span class="deck-status-total"></span>
+</p>
+
+<form action="." method="get" class="goto-form">
+	<label for="goto-slide">Go to slide:</label>
+	<input type="number" name="slidenum" id="goto-slide">
+	<input type="submit" value="Go">
+</form>
+
+<a href="." title="Permalink to this slide" class="deck-permalink">#</a>
+
+
+  <!-- Grab Google CDN's jQuery, with a protocol relative URL; fall back to local if offline -->
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+  <script>window.jQuery || document.write('<script src="../jquery-1.6.4.min.js"><\/script>')</script>
+
+<!-- Deck Core and extensions -->
+<script src="../core/deck.core.js"></script>
+<script src="../extensions/menu/deck.menu.js"></script>
+<script src="../extensions/goto/deck.goto.js"></script>
+<script src="../extensions/status/deck.status.js"></script>
+<script src="../extensions/navigation/deck.navigation.js"></script>
+<script src="../extensions/hash/deck.hash.js"></script>
+
+<!-- Specific to this page -->
+<script src="introduction.js"></script>
+
+</body>
+</html>
